@@ -43,7 +43,7 @@ $this->app->instance(RegisterResponse::class, new class implements RegisterRespo
 {
     public function toResponse($request)
     {
-        // annulla autoogin effettuato da controller di default
+        // annulla autologin effettuato da controller di default, se serve (v. sotto 3.1)
         $this->guard->logout($request->user());
         
         return redirect(route({my_custom_route}));
