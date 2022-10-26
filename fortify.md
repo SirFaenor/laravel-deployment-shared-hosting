@@ -61,7 +61,7 @@ $this->app->instance(LoginResponse::class, new class () implements LoginResponse
 
 ## 2.1 Custom view per la pagina di registrazione
 ```php
-Fortify::loginView(function () {
+Fortify::registerView(function () {
     return view('account.login');
 });
 ```
