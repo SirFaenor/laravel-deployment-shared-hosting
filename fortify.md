@@ -67,8 +67,8 @@ Fortify::registerView(function () {
 ```
 ## 2.2 Elaborazione della registrazione
 
-- la registrazione viene gestita da  `/vendor/laravel/fortify/src/Http/Controllers/RegisteredUserController.php`, che utilizza la action `Actions\Fortify\CreateNewUser`(viene pubblicata all'installazione di Fortify). 
-Intervenire su questa action per personalizzare creazione dell'utente. 
+- la registrazione viene gestita da  `/vendor/laravel/fortify/src/Http/Controllers/RegisteredUserController.php`, che utilizza la action `Actions\Fortify\CreateNewUser`(viene pubblicata all'installazione di Fortify).   
+Intervenire su questa action per personalizzare validazione e creazione dell'utente.      
 Nel caso questo non sia sufficiente, procedere oltre.
 
 - per personalizzare responso DOPO invio del form di registrazione (ed esecuzione della action sopra indicata), registrare un custom response corrispondente. Questo va a sovrascrivere il binding sull'interfaccia viene utilizzata dal controller di Fortify per eseguire il redirect.
