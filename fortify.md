@@ -1,5 +1,9 @@
 # Uso e customizzazione di Fortify
 
+Installare Fortify con `composer require laravel/fortify`.   
+Creare un nuovo provider (es. FortifyServiceProvider) e registrarlo.   
+Le istruzioni di personalizzazione riportate in questa guida possono essere inserite in questo provider.
+
 # 1. Login
 
 ## 1.1 Login view
