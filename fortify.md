@@ -1,8 +1,10 @@
 # Uso e customizzazione di Fortify
 
 Installare Fortify con `composer require laravel/fortify`.   
-Creare un nuovo provider (es. FortifyServiceProvider) e registrarlo.   
-Le istruzioni di personalizzazione riportate in questa guida possono essere inserite in questo provider.
+Pubblicare i file di Fortify con `php artisan vendor:publish --provider="Laravel\Fortify\FortifyServiceProvider"  `.   
+Registrare il provider FortifyServiceProvider appena pubblicato in config/app.php.  
+Eseguire `php artisan migrate`.
+Agire su questo provider per la personalizzazione.
 
 # 1. Login
 
