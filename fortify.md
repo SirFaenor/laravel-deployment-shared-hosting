@@ -9,14 +9,45 @@ Agire su questo provider per la personalizzazione.
 # 1. Login
 
 ## 1.1 Login view
-
+- Per impostare la view da usare per renderizzare il form di login:
 ```php
 Fortify::loginView(function () {
     return view('account.login');
 });
 ```
+Questa view deve contenere il form di login.
 
-## 1.2 Redirect dopo login
+- Per esigenze particolari, è possibile agire registrando un responso custom (questo secondo approccio è alternativo al primo, uno esclude l'altro):
+```php
+use Laravel\Fortify\Contracts\LoginViewResponse;
+
+$this->app->instance(LoginViewResponse::class, new class () implements LoginViewResponse {
+    public function toResponse($request)
+    {
+        
+        // codice custom...
+    
+        return view(...);
+    }
+});
+```
+
+## 1.2 Submit login
+La route di submit del form di login è POST 'login', gestita da `Laravel\Fortify › AuthenticatedSessionController@store`.
+L'autenticazione è personalizzabile attraverso l'impostazione di un callback dedicato:
+```php
+Fortify::authenticateUsing(function (Request $request) {
+        // codice di autenticazione...
+        $user = User::where('email', $request->email)->first();
+ 
+        if ($user &&
+            Hash::check($request->password, $user->password)) {
+            return $user;
+        }
+    });
+```
+
+## 1.3 Redirect dopo login
 Registrare un binding sull'interfaccia usata dal controller vendor che gestisce il login.
 ```php
 $this->app->instance(LoginResponse::class, new class () implements LoginResponse {
