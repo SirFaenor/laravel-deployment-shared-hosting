@@ -35,6 +35,7 @@ $this->app->instance(LoginViewResponse::class, new class () implements LoginView
 ## 1.2 Submit login
 La route di submit del form di login è POST 'login', gestita da `Laravel\Fortify › AuthenticatedSessionController@store`.
 L'autenticazione è personalizzabile attraverso l'impostazione di un callback dedicato:
+
 ```php
 Fortify::authenticateUsing(function (Request $request) {
         // codice di autenticazione...
@@ -48,7 +49,9 @@ Fortify::authenticateUsing(function (Request $request) {
 ```
 
 ## 1.3 Redirect dopo login
-Registrare un binding sull'interfaccia usata dal controller vendor che gestisce il login.
+- impostare un url nella chiave di configurazione fortify.home (di default è RouteServiceProvider::HOME)
+- oppure registrare un binding sull'interfaccia usata dal controller vendor che gestisce il login.
+
 ```php
 $this->app->instance(LoginResponse::class, new class () implements LoginResponse {
     public function toResponse($request)
@@ -71,10 +74,32 @@ Questa vista deve contenere il form di registrazione, che va puntato alla route 
 
 - la registrazione viene gestita da  `/vendor/laravel/fortify/src/Http/Controllers/RegisteredUserController.php`, che utilizza la action `Actions\Fortify\CreateNewUser`(viene pubblicata all'installazione di Fortify).   
 Intervenire su questa action per personalizzare validazione e creazione dell'utente.      
-Nel caso questo non sia sufficiente, procedere oltre.
+Per le regole di validazione della password, vedere capitolo 5.
+
+Se si vuole cambiare redirect per la validazione (ad es. per aggiungere un àncora), catturare l'eccezione e agire su di essa. Es:
+
+```php
+try {
+    Validator::make($input, [
+        'name' => ['required', 'string', 'max:255'],
+        'email' => [
+            'required',
+            'string',
+            'email',
+            'max:255',
+            Rule::unique(User::class),
+        ],
+        'password' => $this->passwordRules(),
+    ])->validateWithBag('register');
+} catch (ValidationException $e) {
+    $e->redirectTo('pippo');
+    throw $e;
+}
+```
 
 - per personalizzare responso DOPO invio del form di registrazione (ed esecuzione della action sopra indicata), registrare un custom response corrispondente. Questo va a sovrascrivere il binding sull'interfaccia viene utilizzata dal controller di Fortify per eseguire il redirect.
-Il controller che gestisce la route di registrazione è  `Laravel\Fortify\Http\Controllers\RegisteredUserController`
+
+
 ```php
 use Laravel\Fortify\Contracts\RegisterResponse;
 
@@ -83,22 +108,23 @@ $this->app->instance(RegisterResponse::class, new class implements RegisterRespo
     public function toResponse($request)
     {
         // annulla autologin effettuato da controller di default, se serve (v. sotto 3.1)
-        $this->guard->logout($request->user());
+        auth()->logout();
         
         return redirect(route({my_custom_route}));
     }
 });
 ```
 
-- per sovrascrivere in toto la gestione del submit della registrazione, sovrascrivere la route che la gestisce
+- nel caso le opzioni sopra non siano sufficienti, sovrascrivere la route del submit della registrazione e gestirla a piacimento
 
 ## 2.3 Invio mail registrazione
 
 ### 2.3.1 invio notifica di registrazione di default (attivazione email)
-- user deve implementare mustverifyemail e la feature deve essere abilitata in fortify
+- user deve implementare mustverifyemail e la feature deve essere abilitata in fortify (config/fortify.php)
 - la route di submit della registrazione è Laravel\Fortify\Http\Controllers\RegisteredUserController@store che emette evento Registered
 - l'invio viene eseguito con /Illuminate/Auth/Listeners/SendEmailVerificationNotification.php (nel core di laravel) registrato come listener
 - la mail che viene inviata è vendor/laravel/framework/src/Illuminate/Auth/Notifications/VerifyEmail.php
+- è possibile personalizzare il template della notifica mail standard ((vale per la registrazione ma anche per le altre notifiche). Seguire la documentazione qui https://laravel.com/docs/9.x/mail#customizing-the-components
 
 ### 2.3.2 invio custom
 
@@ -110,33 +136,37 @@ $this->app->instance(RegisterResponse::class, new class implements RegisterRespo
 - sovrascrivere nella classe User il metodo sendEmailVerificationNotification() fornito dal trait Illuminate/Auth/MustVerifyEmail.php
 - con fortify, per customizzare redirect dopo che utente ha cliccato sul link di verifica email impostarlo nella chiave di cofnigurazione `fortify.redirects.email-verification`
 
-#### opz. C (personalizzazione email e link di attivazione)
+#### opz. C (personalizzazione email e/o link di attivazione)
+
+Con questa modalità **è possibile registrare un url di verifica che non sia protetta dalla verifica del login**
 
 - user deve implementare mustverifyemail e la feature deve essere abilitata in fortify
 
 - per customizzare creazione della mail, impostare un callback di creazione mail per la notifica di default vendor/laravel/framework/src/Illuminate/Auth/Notifications/VerifyEmail.php in FortifyServiceProvider
+
 ```php
 use Illuminate\Auth\Notifications\VerifyEmail;
 
 VerifyEmail::toMailUsing(function ($notifiable, $verificationUrl) {
     // ...codice custom...
-    // è possibile creare una mail da una classe standard
+    // è possibile creare una mail da una classe standard o usare il markdown (MailMessage)
 });
 ```
 
 - per modificare il link di verifica contenuto nella mail di conferma, registrare un callback per la creazione dell'url.
 Assicurarsi nel controller che gestira questa url, di eseguire le istruzioni per impostare la mail dell'utente come verificata
 (v. `Laravel\Fortify › VerifyEmailController`). 
-In questo modo è possibile registrare un url di verifica che non sia protetta dal middleware auth (v. "Personalizzazione procedura di registrazione")
+**In questo modo è possibile registrare un url di verifica che non sia protetta dalla verifica del login** (v. "Personalizzazione procedura di registrazione")
 
 ```php
 use Illuminate\Auth\Notifications\VerifyEmail;
 
-VerifyEmail::createUrlUsing(function ($notifiable, $verificationUrl) {
+VerifyEmail::createUrlUsing(function ($notifiable) {
     // ...codice custom...
     
 });
 ```
+
 # 3. Verifica della mail
 
 ## 3.1 Route di verifica della mail
@@ -144,7 +174,7 @@ VerifyEmail::createUrlUsing(function ($notifiable, $verificationUrl) {
 - per modificare il redirect / il responso DOPO che utente ha cliccato sul link di verifica email, registrare un custom response corrispondente
 La route di verifica email è gestita da  `Laravel\Fortify › VerifyEmailController`.
 In questo caso la procedura di verifica email sarà gestita automaticamente.
-Attenzione che la route di verifica email è protetta dal middleware auth: dopo la registrazione l'utente è automaticamente loggato ma non è detto che apra il link di verifica sul medesimo browser.
+**Attenzione che la route di verifica email è protetta dal middleware auth**: dopo la registrazione l'utente è automaticamente loggato ma non è detto che apra il link di verifica sul medesimo browser (oppure può  essere stato annullato l'auto login dell'utente, v.2.2)
 ```php
 use Laravel\Fortify\Contracts\VerifyEmailResponse;
 
@@ -162,7 +192,9 @@ $this->app->instance(VerifyEmailResponse::class, new class implements VerifyEmai
 });
 ```
 
-- se è stato modificato il link di attivazione contenuto nella mail (v. invio custom, opz. c), assicurarsi di impostare un controller che gestisca l'url (e che proceda alla corretta attivazione della mail qualora sia necessario). Personalizzando il link di attivazione e registrando un controller custom è possibile, ad es, mostrare all'utente la pagina di impostazione password, per permettergli di fare il login (in questo caso andrà disabilitato anche l'autologin dopo l'invio del form di registrazione)
+- se è stato modificato il link di verifica contenuto nella mail (v. invio custom, opz. c), assicurarsi di impostare un controller che gestisca l'url (e che proceda alla corretta attivazione della mail qualora sia necessario). Personalizzando il link di attivazione e registrando un controller custom è possibile, ad es, mostrare all'utente la pagina di impostazione password, per permettergli di fare il login (in questo caso andrà disabilitato anche l'autologin dopo l'invio del form di registrazione)
+
+  
 
 # 4. Reset della password
 
@@ -180,6 +212,7 @@ Fortify::requestPasswordResetLinkView({custom_view});
 
 La vista viene usata anche per renderizzare la risposta.
 In caso di risposta, sarà presente la chiave status in sessione.
+
 ```php
 @if(session('status'))
 <div class="uk-alert uk-alert-success">{{ session('status') }}</div>
@@ -191,9 +224,9 @@ In caso di risposta, sarà presente la chiave status in sessione.
 
 Vedi https://laravel.com/docs/9.x/fortify#handling-the-password-reset-link-request-response
 
-La route è  POST password.email, gestita da vendor/laravel/fortify/src/Http/Controllers/PasswordResetLinkController.php.
+La route è  POST password.email, gestita da vendor/laravel/fortify/src/Http/Controllers/PasswordResetLinkController.php attraverso
 
-Attraverso il password broker, chiama sull'utente interessato il metodo sendPasswordResetNotification().
+Attraverso il password broker, chiama sull'utente interessato il metodo sendPasswordResetNotification() che di default invia una `Illuminate\Auth\Notifications\ResetPasswordNotification`.
 
 Dopo l'elaborazione, si viene reindirizzati nuovamente alla route GET password.request (la vista dovrà quindi mostrare un messaggio di conferma) con la chiave di sessione status contenente il messaggio di conferma.
 
@@ -275,9 +308,9 @@ Viene validato anche il token della richiesta.
 
 Se c'è qualche errore, il controller rimanda alla pagina password.reset (quella del form) inserendo l'errore nella chiave 'email' (quindi controllare con `@error('email)` )
 
-Dopo che il controller ha validato la richiesta,
+Dopo che il controller ha validato di base la richiesta,
 
-- chiama la classe Actions/Fortify/ResetUserPassword per l'aggiornamento.
+- chiama la classe Actions/Fortify/ResetUserPassword (pubblicata da vendor) per l'aggiornamento, che fa una ulteriore validazione (il binding sull'azione è eseguito in FortifyServiceProvider, che viene pubblicato da vendor.)
 Intervenire su questa classe se necessario.
 
 - costruisce un responso sulla base del binding eseguito sull'interfaccia `Laravel\Fortify\Contracts\PasswordResetResponse`
@@ -301,10 +334,20 @@ $this->app->instance(PasswordResetResponse::class, new class implements Password
 });
 ```
 
-# 5. Varie
+# Logout
+Di default il logout è gestito all'url POST "logout" da Laravel\Fortify › AuthenticatedSessionController@destroy
+Se si vuole creare una url in GET:
+```php
+use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 
-## 5.1 Validazione della password
-- fortify mette a disposizione una custom rule su cui agire per impostare i requisiti della password. E' possibile usarla onvunque.
+Route::middleware('web')->get('logout', [AuthenticatedSessionController::class, 'destroy']);
+```
+
+# 6. Varie
+
+## 6.1 Validazione della password
+- l'action CreateNewUser utilizza il trait 'PasswordValidationRules' per impostare le regole di validazione della password; è possibile modificarlo al bisogno.
+- fortify mette a disposizione una custom rule su cui agire per impostare i requisiti della password. E' possibile usarla ovunque.
 ```php
 use Laravel\Fortify\Rules\Password;
 
@@ -316,3 +359,14 @@ $request->validate([
     ],
 ])
 ```
+## 6.2 Middleware 'guest'
+Di default, il middleware 'guest' (App/Http/Middleware/RedirectIfAuthenticated) reindirizza all'url configurato nella costante HOME della classe App\Providers\RouteServiceProvider.
+(ed es. se si cerca di visitare la route "register" o "login" da loggati)
+Cambiare questa url o agire direttamente sul middleware.
+
+La stessa costante è impostata in config.fortify.home e viene usata in caso non si sovrascriva il responso di login di default.
+
+## 6.3 Localizzazione delle notifiche
+Per localizzare i testi usati nelle varie notifiche descritte, seguire la documentazione di laravel https://laravel.com/docs/9.x/notifications#localizing-notifications.
+
+Normalmente dovrebbe bastare salvare il locale preferito dall'utente e ritornarlo nel metodo User::preferredLocale. La classe User in questo caso deve implementare `Illuminate\Contracts\Translation\HasLocalePreference`
