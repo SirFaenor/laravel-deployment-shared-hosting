@@ -62,9 +62,11 @@ $this->app->instance(LoginResponse::class, new class () implements LoginResponse
 ## 2.1 Custom view per la pagina di registrazione
 ```php
 Fortify::registerView(function () {
-    return view('account.login');
+    return view('account.register');
 });
 ```
+Questa vista deve contenere il form di registrazione, che va puntato alla route POST 'register' .
+
 ## 2.2 Elaborazione della registrazione
 
 - la registrazione viene gestita da  `/vendor/laravel/fortify/src/Http/Controllers/RegisteredUserController.php`, che utilizza la action `Actions\Fortify\CreateNewUser`(viene pubblicata all'installazione di Fortify).   
