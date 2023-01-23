@@ -5,9 +5,9 @@ Guides for simple daily tasks in laravel
 ## Authentication
 - [fortify.md](fortify.md)
 ## Docker
-- [docker lamp boilerplate](Docker-lamp-boilerplate/README.md)
+- [docker lamp boilerplate](Docker-lamp-boilerplate/)
 
 ## Miscellaneous
-- [tips for deploy Laravel on shared hosting](deployment-shared-hosting/README.md)
-- [selective environment variables](selective-env-variables/README.md)
+- [tips for deploy Laravel on shared hosting](deployment-shared-hosting/)
+- [selective environment variables](selective-env-variables/)
 - [middleware equivalent of htaccess file](middleware-htaccess/)
