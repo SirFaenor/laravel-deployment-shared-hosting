@@ -1,0 +1,1 @@
+A middleware replacing some useful rules usually contained in `.htaccess` files. See comments in source for explanation.

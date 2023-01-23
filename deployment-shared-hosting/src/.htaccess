@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# nascondo la cartella private
+RewriteRule ^(private)$ - [R=404]
+
+# evito che le directory esistenti in public vengano reindirizzate a url comprensiva di "public"
+RewriteRule ^(imgs|css|js|fonts)$ - [F]
+
+# inoltro a sottocartella
+RewriteCond %{REQUEST_URI} !public/
+RewriteRule (.*) /public/$1 [L]

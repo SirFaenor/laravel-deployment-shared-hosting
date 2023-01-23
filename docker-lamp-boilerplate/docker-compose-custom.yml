@@ -1,0 +1,50 @@
+#
+# ' docker-compose -f docker-compose-custom.yml up'
+#
+
+version: "3"
+
+services:
+  web:
+    build:
+      dockerfile: docker-compose-custom-php.dockerfile
+      context: .
+    restart: "no"
+    volumes:
+      - ".:/var/www/html"
+      - "./docker-data/log:/var/log/apache2"
+    ports:
+      - ${COMPOSE_WEB_PORT}
+    environment:
+      - APACHE_RUN_USER=${COMPOSE_APACHE_RUN_USER}#1000
+      - APACHE_RUN_GROUP=${COMPOSE_APACHE_RUN_GROUP}#1000
+    # imposta l'hostname (come ritornato da gethostname()) INTERNAMENTE AL CONTAINER. Non ha effetto all'esterno
+    hostname: ${COMPOSE_PROJECT_NAME}.localhost
+  db:
+    image: mysql:5.7
+    restart: "no"
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE : ${DB_DATABASE}
+      MYSQL_USER : ${DB_USERNAME}
+      MYSQL_PASSWORD : ${DB_PASSWORD}
+    volumes:
+      - ./docker-data/mysql:/var/lib/mysql
+    ports:
+      - ${COMPOSE_MYSQL_PORT} 
+  composer_install:
+    image : composer:2
+    command: ["composer", "install"]
+    volumes:
+      - "./:/app"
+  # raggiungibile su {hostname}:5000
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5
+    restart: "no"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: secret
+      UPLOAD_LIMIT : 200000000
+    ports:
+      - ${COMPOSE_PHPMYADMIN_PORT}
