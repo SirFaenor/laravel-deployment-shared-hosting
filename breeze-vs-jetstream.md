@@ -24,8 +24,6 @@
 |  |  |  |
 | **API** |                                                     |                           |
 | auth scaffold | :heavy_check_mark:via [Sanctum](https://laravel.com/docs/9.x/sanctum) ? | :heavy_check_mark: via [Sanctum](https://laravel.com/docs/9.x/sanctum) |
-|                         |                                                     |                           |
-|                         |                                                     |                           |
 
 ## Notes
 

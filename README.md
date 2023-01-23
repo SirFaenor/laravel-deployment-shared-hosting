@@ -4,6 +4,7 @@ Guides for simple daily tasks in laravel
 - [localization.md](localization.md)
 ## Authentication
 - [fortify.md](fortify.md)
+- [Breeze vs Jetstream](breeze-vs-jetstream.md)
 ## Docker
 - [docker lamp boilerplate](docker-lamp-boilerplate/)
 
