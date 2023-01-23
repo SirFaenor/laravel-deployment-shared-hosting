@@ -10,4 +10,4 @@ Guides for simple daily tasks in laravel
 ## Miscellaneous
 - [tips for deploy Laravel on shared hosting](deployment-shared-hosting/README.md)
 - [selective environment variables](selective-env-variables/README.md)
-- [middleware equivalent of htaccess file](middleware-htaccess/README.md)
+- [middleware equivalent of htaccess file](middleware-htaccess/)
