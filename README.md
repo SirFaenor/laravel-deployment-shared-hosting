@@ -5,7 +5,7 @@ Guides for simple daily tasks in laravel
 ## Authentication
 - [fortify.md](fortify.md)
 ## Docker
-- [docker lamp boilerplate](Docker-lamp-boilerplate/)
+- [docker lamp boilerplate](docker-lamp-boilerplate/)
 
 ## Miscellaneous
 - [tips for deploy Laravel on shared hosting](deployment-shared-hosting/)
