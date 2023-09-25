@@ -138,7 +138,7 @@ $this->app->instance(RegisterResponse::class, new class implements RegisterRespo
 
 #### opz. C (personalizzazione email e/o link di attivazione)
 
-Con questa modalità **è possibile registrare un url di verifica che non sia protetta dalla verifica del login**
+Con questa modalità **è possibile registrare un url di verifica che non sia protetta dalla verifica del login**. Normalmente infatti il link per la verifica della mail è protetto dal middleware auth.
 
 - user deve implementare mustverifyemail e la feature deve essere abilitata in fortify
 
