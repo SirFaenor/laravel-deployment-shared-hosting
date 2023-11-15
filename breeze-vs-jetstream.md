@@ -19,7 +19,7 @@
 | **UI** |                                                     |                           |
 | default | blade templates + tailwind | blade + livewire + tailwind |
 | alternative | react/vue + inertia js | inertia + vue (with laravel routing) + tailwind |
-| assets building (default) | webpack | vite |
+| assets building (default) | vite | vite |
 | extra |  | pre-built components ("jetstream-views") available to install: drodown, modal, forms, dialog, .. |
 |  |  |  |
 | **API** |                                                     |                           |
